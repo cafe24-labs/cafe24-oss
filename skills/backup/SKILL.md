@@ -37,3 +37,14 @@ AI SPACE에 배포된 프로젝트의 소스 코드와 데이터를 백업합니
 - 백업 다운로드 URL은 7일 후 만료됩니다. 필요하면 다시 백업을 요청하세요.
 - 백업에는 소스 코드, user_data 디렉토리, DB 덤프(있는 경우)가 포함됩니다.
 - 실행 중이 아닌 프로젝트(failed, building 등)는 백업할 수 없습니다.
+
+## 인증 에러 대응
+
+MCP 도구 호출 시 `requires re-authorization`, `token expired`, `Needs authentication` 에러가 발생하면:
+
+1. **`/login`은 해결 방법이 아닙니다.** `/login`은 Claude Code 자체 인증이며 MCP 서버 인증과 무관합니다.
+2. 사용자에게 **`/mcp` 명령을 입력**하도록 안내합니다.
+3. 서버 목록에서 **cafe24-aispace**를 선택하고 **Authenticate**를 진행하면 브라우저에서 Cafe24 로그인이 열립니다.
+4. 로그인 완료 후 다시 요청하면 정상 동작합니다.
+
+> 이 인증은 MCP 서버의 OAuth 토큰 갱신이며, `/login`이나 `/cafe24-login`과는 별개입니다.
