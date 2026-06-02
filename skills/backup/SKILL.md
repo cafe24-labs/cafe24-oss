@@ -1,50 +1,56 @@
 ---
-description: AI SPACE 프로젝트를 백업합니다. "백업해줘", "데이터 저장해줘", "스냅샷 만들어줘", "backup" 등을 요청할 때 자동으로 사용됩니다.
+description: AI Space 프로젝트를 백업합니다. "백업해줘", "데이터 저장해줘", "스냅샷 만들어줘", "backup" 등 백업 요청 시 자동으로 사용됩니다.
 argument-hint: "[프로젝트 이름]"
 ---
 
-# AI SPACE 프로젝트 백업
+# AI Space 프로젝트 백업
 
-AI SPACE에 배포된 프로젝트의 소스 코드와 데이터를 백업합니다.
+배포된 프로젝트의 소스 코드와 DB 데이터를 백업하고 다운로드 URL을 발급합니다.
 
-## 백업 절차
+## 워크플로우
 
-### 1단계: 프로젝트 확인
+### 1. 프로젝트 확인
 
-1. `list_my_projects`로 프로젝트 목록 조회
-2. 대상 프로젝트 선택:
-   - 사용자가 지정한 경우: 해당 프로젝트 사용
-   - 프로젝트 1개: 자동 선택
-   - 프로젝트 2개 이상: 사용자에게 선택 요청
-3. `get_project_status`로 프로젝트 상태 확인
-   - **'success' 상태일 때만 백업 가능**
-   - 다른 상태면 사용자에게 안내
+1. `list_my_projects` 로 프로젝트 목록 조회
+2. 대상 선택:
+   - 사용자가 지정 → 해당 프로젝트
+   - 1개 → 자동 선택
+   - 2개 이상 → 선택 요청
+3. `get_project_status` 로 상태 확인
+   - **`success` 상태일 때만 백업 가능**
+   - `building` / `failed` 상태면 사용자에게 안내 후 중단
 
-### 2단계: 백업 실행
+### 2. 백업 실행
 
-`backup_project`를 호출합니다 (wait: true 권장).
+`backup_project` 호출 (`wait: true` 권장 — 동기 완료 대기).
 
-### 3단계: 결과 안내
+### 3. 결과 안내
 
-백업 완료 후 사용자에게 다음 정보를 안내합니다:
+백업 완료 후 다음을 안내합니다:
 
-- **다운로드 URL**: 백업 파일 다운로드 링크
-- **유효 기간**: 다운로드 URL은 **7일간** 유효
-- **포함 내용**: 소스 코드 + DB가 있는 프로젝트는 SQL 덤프 자동 포함
+| 항목 | 값 |
+|------|-----|
+| 다운로드 URL | 응답의 `download_url` |
+| 유효 기간 | **7일** |
+| 포함 내용 | 소스 코드 + `/app/user_data/` + DB 덤프 (있는 경우) |
 
 ## 안내사항
 
-- 백업 다운로드 URL은 7일 후 만료됩니다. 필요하면 다시 백업을 요청하세요.
-- 백업에는 소스 코드, user_data 디렉토리, DB 덤프(있는 경우)가 포함됩니다.
-- 실행 중이 아닌 프로젝트(failed, building 등)는 백업할 수 없습니다.
+- 백업 다운로드 URL은 7일 후 만료됩니다. 필요 시 `backup_project` 를 다시 호출하세요
+- 백업에는 소스 코드, `user_data` 디렉토리, DB 덤프(있는 경우)가 포함됩니다
+- 실행 중이 아닌 프로젝트(`failed`, `building` 등)는 백업 불가
 
-## 인증 에러 대응
+## 파괴적 작업 전 백업 권유
 
-MCP 도구 호출 시 `requires re-authorization`, `token expired`, `Needs authentication` 에러가 발생하면:
+`update_project(reset=true)`, `force=true` 등 파괴적 작업 전에는 사용자에게 먼저 `backup_project` 호출을 제안하세요. 자세한 가드 정책은 [`rules/aispace.md#파괴적-작업-가드`](../../rules/aispace.md#파괴적-작업-가드) 참조.
 
-1. **`/login`은 해결 방법이 아닙니다.** `/login`은 Claude Code 자체 인증이며 MCP 서버 인증과 무관합니다.
-2. 사용자에게 **`/mcp` 명령을 입력**하도록 안내합니다.
-3. 서버 목록에서 **cafe24-aispace**를 선택하고 **Authenticate**를 진행하면 브라우저에서 Cafe24 로그인이 열립니다.
-4. 로그인 완료 후 다시 요청하면 정상 동작합니다.
+## 도구 매핑
 
-> 이 인증은 MCP 서버의 OAuth 토큰 갱신이며, `/login`이나 `/cafe24-login`과는 별개입니다.
+| 작업 | MCP 도구 |
+|------|----------|
+| 백업 생성 | `backup_project` |
+| 사전 상태 확인 | `get_project_status` |
+
+## 에러 대응
+
+- **MCP 인증 에러**: [`rules/aispace.md#mcp-인증-에러`](../../rules/aispace.md#mcp-인증-에러) 참조
