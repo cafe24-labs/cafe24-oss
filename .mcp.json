@@ -2,7 +2,8 @@
   "mcpServers": {
     "cafe24-aispace": {
       "type": "http",
-      "url": "https://aih-proxy.cafe24.com/mcp"
+      "url": "https://aih-proxy.cafe24.com/mcp",
+      "oauth": {}
     }
   }
 }
