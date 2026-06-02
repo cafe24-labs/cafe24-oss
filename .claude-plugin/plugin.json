@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/claude-plugin.json",
   "name": "cafe24-aispace",
   "version": "1.1.0",
   "description": "Deploy and manage web projects on Cafe24 AI Space directly from Claude Code. Supports Node.js, Python, PHP, and static sites with MySQL/PostgreSQL/SQLite/Redis. OAuth 2.0 auto-auth — no API keys required.",
